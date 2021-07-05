@@ -1,0 +1,243 @@
+﻿using GivMigOrdrer.Backend.Converters;
+using GivMigOrdrer.Backend.Entities;
+using GivMigOrdrer.Languages;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Printing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Color = System.Drawing.Color;
+
+namespace GivMigOrdrer
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private static readonly LanguageHolder _languages = new LanguageHolder();
+        private static readonly IConvertStringToOrderEntities<IOrderEntity<IOrderItem>> CSO = new StringToOrderConverter();
+        private static readonly StringBuilder _sb = new StringBuilder();
+
+        public MainWindow()
+        {
+            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(int.MaxValue));
+            InitializeComponent();
+            SetAllTextToLanguage();
+        }
+
+        private void SetAllTextToLanguage(string id = "en")
+        {
+            _languages.SelectLanguage(id);
+            TitleText.Text = _languages.GetTextWithName("title");
+            UnderTitle.Text = _languages.GetTextWithName("undertitle");
+            Itemname.Text = _languages.GetTextWithName(Itemname.Name);
+            Quantity.Text = _languages.GetTextWithName(Quantity.Name);
+            ItemNumberText.Text = _languages.GetTextWithName(ItemNumberText.Name);
+            ItemNumberBox.ToolTip = _languages.GetTextWithName(ItemNumberBox.Name);
+            QuantityToolTip.ToolTip = _languages.GetTextWithName(QuantityToolTip.Name);
+            ItemNameTooltip.ToolTip = _languages.GetTextWithName(ItemNameTooltip.Name);
+            CopyToClipboard.Content = _languages.GetTextWithName(CopyToClipboard.Name);
+            OrderEntityNumber.Text = _languages.GetTextWithName(OrderEntityNumber.Name);
+            OrderIdBox.ToolTip = _languages.GetTextWithName(OrderIdBox.Name);
+            Clear.Content = _languages.GetTextWithName(Clear.Name);
+            Convert.Content = _languages.GetTextWithName(Convert.Name);
+            Pasteorders.Content = _languages.GetTextWithName(Pasteorders.Name);
+            Sortitems.Text = _languages.GetTextWithName(Sortitems.Name);
+            Itemnumber.Content = _languages.GetTextWithName(Itemnumber.Name);
+            Itemquantity.Content = _languages.GetTextWithName(Itemquantity.Name);
+            Example1.Text = _languages.GetTextWithName(Example1.Name);
+            Howtopickcolumns.Text = _languages.GetTextWithName(Howtopickcolumns.Name);
+        }
+
+        private void EN_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllTextToLanguage(EN.Name.ToLower());
+        }
+
+        private void DK_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllTextToLanguage(DK.Name.ToLower());
+        }
+
+        private void ES_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllTextToLanguage(ES.Name.ToLower());
+        }
+
+        private void Convert_Click(object sender, RoutedEventArgs e)
+        {
+            LinesConverted.Text = "0";
+            int[] coords =
+                {
+                int.Parse(OrderIdBox.Text) - 1,
+                int.Parse(ItemNumberBox.Text) - 1,
+                int.Parse(QuantityToolTip.Text) - 1,
+                int.Parse(ItemNameTooltip.Text) - 1
+                };
+            string str = InputBox.Text;
+            GetOrders(str, coords);
+        }
+
+        private void Clear_Click(object sender, RoutedEventArgs e)
+        {
+            SetOutputBoxText("");
+            LinesConverted.Text = "0";
+            InputBox.Text = "";
+        }
+
+        private async void GetOrders(string str, int[] coords)
+        {
+            IOrderEntity<IOrderItem>[] orders = Array.Empty<IOrderEntity<IOrderItem>>();
+            Task task = Task.Run(() =>
+            {
+                orders = CSO.ConvertStringToOrders(str, coords, SeparatorType.TSV);
+            });
+            SetOutputBoxText("Loading...");
+            LinesConverted.Text = "Loading...";
+            DisableInput();
+            await task;
+            if (orders != null && orders.Length != 0)
+            {
+                LinesConverted.Text = CSO.ConvertedLines.ToString();
+                if (GetOnlyItems.IsChecked == true)
+                {
+                    Dictionary<int, IOrderItem> items = new Dictionary<int, IOrderItem>();
+                    foreach (IOrderEntity<IOrderItem> order in orders)
+                    {
+                        foreach (IOrderItem item in order.GetItems())
+                        {
+                            if (items.ContainsKey(item.Id))
+                            {
+                                IOrderItem mappedItem = items[item.Id];
+                                _ = mappedItem.AddToQuantity(item.Quantity);
+                                items[mappedItem.Id] = mappedItem;
+                            }
+                            else
+                            {
+                                items.Add(item.Id, item);
+                            }
+                        }
+                    }
+                    IOrderItem[] itemArray = new IOrderItem[items.Count];
+                    items.Values.CopyTo(itemArray, 0);
+                    Array.Sort(itemArray, (x, y) => x.Id.CompareTo(y.Id));
+                    SetOutputBoxText(ConvertItemsToString(itemArray));
+                }
+                else
+                {
+                    if (SortBox.SelectedIndex == 0 && GetOnlyItems.IsChecked == false)
+                    {
+                        Array.Sort(orders, (x, y) => x.GetItemWithLowestId().Id.CompareTo(y.GetItemWithLowestId().Id));
+                    }
+                    if (SortBox.SelectedIndex == 1 && GetOnlyItems.IsChecked == false)
+                    {
+                        Array.Sort(orders, (x, y) => y.GetItemWithGreatestQuantity().Quantity.CompareTo(x.GetItemWithGreatestQuantity().Quantity));
+                    }
+                    SetOutputBoxText(ConvertOrdersToString(orders));
+                }
+            }
+            else
+            {
+                LinesConverted.Text = "0";
+                SetOutputBoxText($"Computer says \"no\".");
+            }
+            EnableInput();
+        }
+
+        private string ConvertItemsToString(IOrderItem[] items)
+        {
+            _ = _sb.Clear();
+            _ = _sb.Append($"id\tqty\n");
+            for (int i = 0; i < items.Length; i++)
+            {
+                _ = _sb.Append(items[i]);
+            }
+            return _sb.ToString();
+        }
+
+        private string ConvertOrdersToString(IOrderEntity<IOrderItem>[] orders)
+        {
+            _ = _sb.Clear();
+
+            for (int i = 0; i < orders.Length; i++)
+            {
+                _ = _sb.Append(orders[i].ToString());
+                _ = _sb.Append($"\n");
+            }
+            return _sb.ToString();
+        }
+
+        private void EnableInput()
+        {
+            Convert.IsEnabled = true;
+            Clear.IsEnabled = true;
+            EN.IsEnabled = true;
+            DK.IsEnabled = true;
+            ES.IsEnabled = true;
+            CopyToClipboard.IsEnabled = true;
+            InputBox.IsEnabled = true;
+        }
+
+        private void DisableInput()
+        {
+            Convert.IsEnabled = false;
+            Clear.IsEnabled = false;
+            EN.IsEnabled = false;
+            DK.IsEnabled = false;
+            ES.IsEnabled = false;
+            CopyToClipboard.IsEnabled = false;
+            InputBox.IsEnabled = false;
+        }
+
+        private void SetOutputBoxText(string str)
+        {
+            OutputBox.Text = str;
+        }
+
+        private void CopyToClipboard_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(OutputBox.Text);
+            SetOutputBoxText(_languages.GetTextWithName("copiedtoclipboard"));
+        }
+
+        private void PrintButton_Click(object sender, RoutedEventArgs e)
+        {
+            string str = OutputBox.Text;
+            if (string.IsNullOrEmpty(str) == false)
+            {
+                PrintDocument doc = new PrintDocument();
+                doc.PrintPage += delegate (object sender1, PrintPageEventArgs e1)
+                {
+                    e1.Graphics.DrawString
+                    (
+                        str,
+                        new Font("Times New Roman", 10),
+                        new SolidBrush(Color.Black),
+                        new RectangleF(0, 0, doc.DefaultPageSettings.PrintableArea.Width, doc.DefaultPageSettings.PrintableArea.Height)
+                    );
+                };
+
+                try
+                {
+                    doc.Print();
+                }
+                catch (InvalidPrinterException ex)
+                {
+                    throw new Exception("something went wrong with printing", ex);
+                }
+            }
+        }
+    }
+}
