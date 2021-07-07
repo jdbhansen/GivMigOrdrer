@@ -85,8 +85,6 @@ namespace GivMigOrdrer.Backend.Entities
             return sb.ToString();
         }
 
-
-
         /// <summary>
         /// Sorts the list after the items' quantities.
         /// </summary>

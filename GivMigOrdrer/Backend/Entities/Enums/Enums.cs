@@ -12,9 +12,14 @@ namespace GivMigOrdrer.Backend.Entities.Enums
         UPS
     }
 
-    public enum SorType
+    public enum ItemType
     {
-        CSV,
-        TSV
+        Accessory,
+        Headset,
+        Mouse,
+        Keyboard,
+        Mousepad,
+        Misc
     }
+
 }
