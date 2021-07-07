@@ -12,13 +12,13 @@ namespace GivMigOrdrer.Backend.Entities.Enums
         UPS
     }
 
-    public enum ItemType
+    public enum ItemType : int
     {
         Accessory,
         Headset,
         Mouse,
-        Keyboard,
         Mousepad,
+        Keyboard,
         Misc
     }
 

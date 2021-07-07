@@ -46,28 +46,34 @@ namespace GivMigOrdrer.Backend.Entities
             return $"{Id}\t{Quantity}\t{Name}\n";
         }
 
+        /// <summary>
+        /// Returns the Itemtype for the items id... works only in Steelseries.
+        /// </summary>
+        /// <param name="itemId"></param>
+        /// <returns></returns>
         private static ItemType ItemTypeSelector(int itemId)
         {
-            if (itemId < 61000)
+            if (itemId > 60000 && itemId < 61000)
             {
                 return ItemType.Accessory;
             }
-            if (itemId < 62000)
+            if (itemId > 61000 && itemId < 62000)
             {
                 return ItemType.Headset;
             }
-            if (itemId < 63000)
+            if (itemId > 62000 && itemId < 63000)
             {
                 return ItemType.Mouse;
             }
-            if (itemId < 64000)
+            if (itemId > 63000 && itemId < 64000)
             {
                 return ItemType.Mousepad;
             }
-            if (itemId < 65000)
+            if (itemId > 64000 && itemId < 65000)
             {
                 return ItemType.Keyboard;
             }
+
             return ItemType.Misc;
         }
     }

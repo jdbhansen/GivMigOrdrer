@@ -1,5 +1,6 @@
 ﻿using GivMigOrdrer.Backend.Converters;
 using GivMigOrdrer.Backend.Entities;
+using GivMigOrdrer.Backend.Entities.Enums;
 using GivMigOrdrer.Languages;
 using System;
 using System.Collections.Generic;
@@ -137,6 +138,7 @@ namespace GivMigOrdrer
                 }
                 else
                 {
+                    orders = GetOnlyOrdersWithType(orders);
                     if (SortBox.SelectedIndex == 0 && GetOnlyItems.IsChecked == false)
                     {
                         Array.Sort(orders, (x, y) => x.GetItemWithLowestId().Id.CompareTo(y.GetItemWithLowestId().Id));
@@ -154,6 +156,63 @@ namespace GivMigOrdrer
                 SetOutputBoxText($"Computer says \"no\".");
             }
             EnableInput();
+        }
+
+        private IOrderItem[] GetOnlyItemsOfType(IOrderItem[] items)
+        {
+            int selected = ItemTypeBox.SelectedIndex;
+            ItemType itemType = (ItemType)selected;
+            List<IOrderItem> itemList = new List<IOrderItem>();
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i].ItemType == itemType)
+                {
+                    itemList.Add(items[i]);
+                }
+            }
+            return items.ToArray();
+        }
+
+        private IOrderEntity<IOrderItem>[] GetOnlyOrdersWithType(IOrderEntity<IOrderItem>[] orders)
+        {
+            int selected = ItemTypeBox.SelectedIndex;
+            if (selected != 0)
+            {
+                // Kunne bare caste selected - 1 til ItemType, men en switch gør,
+                // at man er fuldstændig sikker på hvad itemtype er.
+                ItemType itemType = GetItemType(selected - 1);
+                List<IOrderEntity<IOrderItem>> orderList = new List<IOrderEntity<IOrderItem>>();
+                for (int i = 0; i < orders.Length; i++)
+                {
+                    if (orders[i].GetItemWithLowestId().ItemType == itemType)
+                    {
+                        orderList.Add(orders[i]);
+                    }
+                }
+                return orderList.ToArray();
+            }
+            return orders;
+        }
+
+        private ItemType GetItemType(int value)
+        {
+            switch (value)
+            {
+                case 0:
+                    return ItemType.Accessory;
+                case 1:
+                    return ItemType.Headset;
+                case 2:
+                    return ItemType.Mouse;
+                case 3:
+                    return ItemType.Mousepad;
+                case 4:
+                    return ItemType.Keyboard;
+                case 5:
+                    return ItemType.Misc;
+                default:
+                    return ItemType.Misc;
+            }
         }
 
         private string ConvertItemsToString(IOrderItem[] items)
@@ -225,7 +284,7 @@ namespace GivMigOrdrer
                         str,
                         new Font("Times New Roman", 10),
                         new SolidBrush(Color.Black),
-                        new RectangleF(0, 0, doc.DefaultPageSettings.PrintableArea.Width, doc.DefaultPageSettings.PrintableArea.Height)
+                        new RectangleF(0, 0, e1.MarginBounds.Width, e1.MarginBounds.Height)
                     );
                 };
 

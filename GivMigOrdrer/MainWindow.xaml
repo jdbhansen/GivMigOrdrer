@@ -113,6 +113,19 @@
                         IsSelected="True" />
                     <ComboBoxItem x:Name="Itemquantity" Content="placeholder1" />
                 </ComboBox>
+                <TextBlock
+                    x:Name="itemboxtext"
+                    Margin="5"
+                    Text="placeholder" />
+                <ComboBox x:Name="ItemTypeBox" Cursor="Hand">
+                    <ComboBoxItem Content="All" IsSelected="True" />
+                    <ComboBoxItem Content="Accessory" />
+                    <ComboBoxItem Content="Headset" />
+                    <ComboBoxItem Content="Mouse" />
+                    <ComboBoxItem Content="Mousepad" />
+                    <ComboBoxItem Content="Keyboard" />
+                    <ComboBoxItem Content="Misc" />
+                </ComboBox>
                 <CheckBox
                     x:Name="GetOnlyItems"
                     Margin="10"
