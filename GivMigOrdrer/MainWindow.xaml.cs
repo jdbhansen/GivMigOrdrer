@@ -36,6 +36,7 @@ namespace GivMigOrdrer
             ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(int.MaxValue));
             InitializeComponent();
             SetAllTextToLanguage();
+            ItemTypeBox.IsEnabled = false;
         }
 
         private void SetAllTextToLanguage(string id = "en")
@@ -60,6 +61,8 @@ namespace GivMigOrdrer
             Itemquantity.Content = _languages.GetTextWithName(Itemquantity.Name);
             Example1.Text = _languages.GetTextWithName(Example1.Name);
             Howtopickcolumns.Text = _languages.GetTextWithName(Howtopickcolumns.Name);
+            itemboxtext.Text = _languages.GetTextWithName(itemboxtext.Name);
+            PrintButton.Content = _languages.GetTextWithName(PrintButton.Name);
         }
 
         private void EN_Click(object sender, RoutedEventArgs e)
@@ -133,12 +136,20 @@ namespace GivMigOrdrer
                     }
                     IOrderItem[] itemArray = new IOrderItem[items.Count];
                     items.Values.CopyTo(itemArray, 0);
-                    Array.Sort(itemArray, (x, y) => x.Id.CompareTo(y.Id));
+                    if (SortBox.SelectedIndex == 0)
+                    {
+                        Array.Sort(itemArray, (x, y) => x.Id.CompareTo(y.Id));
+                    }
+                    else
+                    {
+                        Array.Sort(itemArray, (x, y) => y.Quantity.CompareTo(x.Quantity));
+                    }
                     SetOutputBoxText(ConvertItemsToString(itemArray));
                 }
                 else
                 {
                     orders = GetOnlyOrdersWithType(orders);
+
                     if (SortBox.SelectedIndex == 0 && GetOnlyItems.IsChecked == false)
                     {
                         Array.Sort(orders, (x, y) => x.GetItemWithLowestId().Id.CompareTo(y.GetItemWithLowestId().Id));
@@ -147,7 +158,16 @@ namespace GivMigOrdrer
                     {
                         Array.Sort(orders, (x, y) => y.GetItemWithGreatestQuantity().Quantity.CompareTo(x.GetItemWithGreatestQuantity().Quantity));
                     }
-                    SetOutputBoxText(ConvertOrdersToString(orders));
+                    if (orders.Length != 0)
+                    {
+                        SetOutputBoxText(ConvertOrdersToString(orders));
+                    }
+                    else
+                    {
+                        _ = orders;
+                        SetOutputBoxText($"There is no orders with {GetItemType(ItemTypeBox.SelectedIndex - 1)} items.");
+                    }
+
                 }
             }
             else
@@ -158,20 +178,20 @@ namespace GivMigOrdrer
             EnableInput();
         }
 
-        private IOrderItem[] GetOnlyItemsOfType(IOrderItem[] items)
-        {
-            int selected = ItemTypeBox.SelectedIndex;
-            ItemType itemType = (ItemType)selected;
-            List<IOrderItem> itemList = new List<IOrderItem>();
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i].ItemType == itemType)
-                {
-                    itemList.Add(items[i]);
-                }
-            }
-            return items.ToArray();
-        }
+        //private IOrderItem[] GetOnlyItemsOfType(IOrderItem[] items)
+        //{
+        //    int selected = ItemTypeBox.SelectedIndex;
+        //    ItemType itemType = (ItemType)selected;
+        //    List<IOrderItem> itemList = new List<IOrderItem>();
+        //    for (int i = 0; i < items.Length; i++)
+        //    {
+        //        if (items[i].ItemType == itemType)
+        //        {
+        //            itemList.Add(items[i]);
+        //        }
+        //    }
+        //    return items.ToArray();
+        //}
 
         private IOrderEntity<IOrderItem>[] GetOnlyOrdersWithType(IOrderEntity<IOrderItem>[] orders)
         {
@@ -297,6 +317,11 @@ namespace GivMigOrdrer
                     throw new Exception("something went wrong with printing", ex);
                 }
             }
+        }
+
+        private void GetOnlyItems_Click(object sender, RoutedEventArgs e)
+        {
+            ItemTypeBox.IsEnabled = GetOnlyItems.IsChecked != true;
         }
     }
 }

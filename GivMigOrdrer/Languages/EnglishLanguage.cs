@@ -44,6 +44,8 @@ namespace GivMigOrdrer.Languages
             texts[$"copiedtoclipboard"] = $"Copied to clipboard!";
             texts[$"howtopickcolumns"] = $"The image below shows how to pick the column values, if you like Cherwin and Juan orders the table differently than the \"default\"";
             texts[$"example1"] = $"Here the values would be\nItem number column (varenummer): 3\nItem quantity column (antal): 5\nItem name column (varenavn): 6";
+            texts[$"itemboxtext"] = $"Select orders with specific item type:";
+            texts[$"printbutton"] = $"Print";
         }
     }
 }

@@ -44,6 +44,8 @@ namespace GivMigOrdrer.Languages
             texts[$"copiedtoclipboard"] = $"Copiado al portapapeles!";
             texts[$"howtopickcolumns"] = $"La siguiente imagen muestra cómo elegir los valores de las columnas, si usted, como Cherwin y Juan, ordena la tabla de manera diferente a la \"predeterminada\".";
             texts[$"example1"] = $"Aquí los valores serían:\nColumna de número de artículo (varenummer): 3\nColumna de cantidad de artículo (antal): 5\nColumna de nombre de artículo (varenavn): 6";
+            texts[$"itemboxtext"] = "Seleccionar pedidos con objeto específico:";
+            texts[$"printbutton"] = $"Impresión";
         }
     }
 }

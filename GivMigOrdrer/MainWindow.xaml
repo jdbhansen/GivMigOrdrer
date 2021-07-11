@@ -129,7 +129,9 @@
                 <CheckBox
                     x:Name="GetOnlyItems"
                     Margin="10"
+                    Click="GetOnlyItems_Click"
                     Content="Only items!"
+                    Cursor="Hand"
                     IsChecked="True" />
             </StackPanel>
 

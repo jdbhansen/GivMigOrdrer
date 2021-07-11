@@ -45,6 +45,8 @@ namespace GivMigOrdrer.Languages
             texts[$"copiedtoclipboard"] = $"Kopieret til udklipsholderen!";
             texts[$"howtopickcolumns"] = $"Billedet nedenfor viser, hvordan man vælger kolonneværdierne, hvis man, som Cherwin og Juan, har opsat tabellen anderledes.";
             texts[$"example1"] = $"Her ville værdierne være:\nVarenummerkolonne: 3\nVaremængdekolonne (antal): 5\nVarenavnkolonne: 6";
+            texts[$"itemboxtext"] = "Vælg ordrer med en bestemt varetype:";
+            texts[$"printbutton"] = $"Udskriv";
         }
     }
 }
