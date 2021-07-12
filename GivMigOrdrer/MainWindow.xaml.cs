@@ -18,7 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Color = System.Drawing.Color;
+using Brushes = System.Drawing.Brushes;
 
 namespace GivMigOrdrer
 {
@@ -30,6 +30,9 @@ namespace GivMigOrdrer
         private static readonly LanguageHolder _languages = new LanguageHolder();
         private static readonly IConvertStringToOrderEntities<IOrderEntity<IOrderItem>> CSO = new StringToOrderConverter();
         private static readonly StringBuilder _sb = new StringBuilder();
+        private readonly Font font = new Font("Times New Roman", 11);
+        private readonly PrintDocument doc = new PrintDocument();
+
 
         public MainWindow()
         {
@@ -167,7 +170,6 @@ namespace GivMigOrdrer
                         _ = orders;
                         SetOutputBoxText($"There is no orders with {GetItemType(ItemTypeBox.SelectedIndex - 1)} items.");
                     }
-
                 }
             }
             else
@@ -296,26 +298,28 @@ namespace GivMigOrdrer
             string str = OutputBox.Text;
             if (string.IsNullOrEmpty(str) == false)
             {
-                PrintDocument doc = new PrintDocument();
-                doc.PrintPage += delegate (object sender1, PrintPageEventArgs e1)
+                doc.PrintPage += delegate (object send, PrintPageEventArgs eventArgs)
                 {
-                    e1.Graphics.DrawString
-                    (
+                    _ = eventArgs.Graphics.MeasureString(
                         str,
-                        new Font("Times New Roman", 10),
-                        new SolidBrush(Color.Black),
-                        new RectangleF(0, 0, e1.MarginBounds.Width, e1.MarginBounds.Height)
-                    );
-                };
+                        font,
+                        eventArgs.MarginBounds.Size,
+                        StringFormat.GenericTypographic,
+                        out int charsOnPage,
+                        out int LinesOnPage
+                        );
 
-                try
-                {
-                    doc.Print();
-                }
-                catch (InvalidPrinterException ex)
-                {
-                    throw new Exception("something went wrong with printing", ex);
-                }
+                    eventArgs.Graphics.DrawString(
+                        str,
+                        font,
+                        Brushes.Black,
+                        eventArgs.MarginBounds
+                        );
+
+                    str = str.Substring(charsOnPage);
+                    eventArgs.HasMorePages = str.Length > 0;
+                };
+                doc.Print();
             }
         }
 
