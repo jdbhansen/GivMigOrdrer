@@ -31,7 +31,7 @@ namespace GivMigOrdrer
         private static readonly LanguageHolder _languages = new LanguageHolder();
         private static readonly IConvertStringToOrderEntities<IOrderEntity<IOrderItem>> CSO = new StringToOrderConverter();
         private static readonly StringBuilder _sb = new StringBuilder();
-        private readonly Font font = new Font("Times New Roman", 11);
+        private readonly Font font = new Font("Consolas", 10);
         private readonly PrintDocument doc = new PrintDocument();
 
 
@@ -296,23 +296,24 @@ namespace GivMigOrdrer
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
+            float fontSize = font.SizeInPoints * 4;
             string str = OutputBox.Text;
             if (string.IsNullOrEmpty(str) == false)
             {
                 doc.PrintPage += delegate (object send, PrintPageEventArgs eventArgs)
                 {
-                    RectangleF rectangle = eventArgs.MarginBounds;
-                    rectangle.X = eventArgs.PageBounds.X + font.Height;
-                    rectangle.Y = eventArgs.PageBounds.Y + font.Height;
-
-                    rectangle.Width = eventArgs.PageBounds.Width;
-                    float sizethingie = font.Size + font.GetHeight();
-                    rectangle.Height = eventArgs.PageSettings.PrintableArea.Height - sizethingie;
+                    RectangleF rectangleF = new RectangleF
+                    {
+                        X = eventArgs.PageSettings.PrintableArea.X + font.SizeInPoints,
+                        Y = eventArgs.PageSettings.PrintableArea.Y + font.SizeInPoints,
+                        Width = eventArgs.PageSettings.PrintableArea.Width,
+                        Height = eventArgs.PageSettings.Bounds.Height - fontSize
+                    };
 
                     _ = eventArgs.Graphics.MeasureString(
                         str,
                         font,
-                        rectangle.Size,
+                        rectangleF.Size,
                         StringFormat.GenericTypographic,
                         out int charsOnPage,
                         out int LinesOnPage
@@ -322,7 +323,7 @@ namespace GivMigOrdrer
                         str,
                         font,
                         Brushes.Black,
-                        rectangle
+                        rectangleF
                         );
 
                     str = str.Substring(charsOnPage);
