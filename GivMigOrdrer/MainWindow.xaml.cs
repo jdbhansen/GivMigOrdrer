@@ -301,17 +301,18 @@ namespace GivMigOrdrer
             {
                 doc.PrintPage += delegate (object send, PrintPageEventArgs eventArgs)
                 {
-                    Rectangle rectF = eventArgs.MarginBounds;
-                    rectF.X = eventArgs.PageBounds.X + font.Height;
-                    /// default margins is 100
-                    rectF.Y = eventArgs.PageBounds.Y + font.Height;
-                    rectF.Width = eventArgs.PageBounds.Width;
-                    rectF.Height += font.Height;
+                    RectangleF rectangle = eventArgs.MarginBounds;
+                    rectangle.X = eventArgs.PageBounds.X + font.Height;
+                    rectangle.Y = eventArgs.PageBounds.Y + font.Height;
+
+                    rectangle.Width = eventArgs.PageBounds.Width;
+                    float sizethingie = font.Size + font.GetHeight();
+                    rectangle.Height = eventArgs.PageSettings.PrintableArea.Height - sizethingie;
 
                     _ = eventArgs.Graphics.MeasureString(
                         str,
                         font,
-                        rectF.Size,
+                        rectangle.Size,
                         StringFormat.GenericTypographic,
                         out int charsOnPage,
                         out int LinesOnPage
@@ -321,7 +322,7 @@ namespace GivMigOrdrer
                         str,
                         font,
                         Brushes.Black,
-                        rectF
+                        rectangle
                         );
 
                     str = str.Substring(charsOnPage);
