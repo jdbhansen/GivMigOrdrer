@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Brushes = System.Drawing.Brushes;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace GivMigOrdrer
 {
@@ -300,10 +301,17 @@ namespace GivMigOrdrer
             {
                 doc.PrintPage += delegate (object send, PrintPageEventArgs eventArgs)
                 {
+                    Rectangle rectF = eventArgs.MarginBounds;
+                    rectF.X = eventArgs.PageBounds.X + font.Height;
+                    /// default margins is 100
+                    rectF.Y = eventArgs.PageBounds.Y + font.Height;
+                    rectF.Width = eventArgs.PageBounds.Width;
+                    rectF.Height += font.Height;
+
                     _ = eventArgs.Graphics.MeasureString(
                         str,
                         font,
-                        eventArgs.MarginBounds.Size,
+                        rectF.Size,
                         StringFormat.GenericTypographic,
                         out int charsOnPage,
                         out int LinesOnPage
@@ -313,7 +321,7 @@ namespace GivMigOrdrer
                         str,
                         font,
                         Brushes.Black,
-                        eventArgs.MarginBounds
+                        rectF
                         );
 
                     str = str.Substring(charsOnPage);
